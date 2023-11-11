@@ -12,6 +12,15 @@ export enum ConfigurationSectionStatus {
     Error = "error"
 }
 
+export enum FieldToEdit  {
+    None = 'None',
+    Answer = 'Answer',
+    Recommendation1 = 'Recommendation 1',
+    Recommendation2 = 'Recommendation 2',
+    Recommendation3 = 'Recommendation 3',
+  }
+
+
 
 export interface ProjectSummary{
     projectName : string;
@@ -19,6 +28,7 @@ export interface ProjectSummary{
 
 export interface QuestionAndAnswer{
     index: number;
+    c: string | undefined;
     q: string | undefined;
     a: string | undefined;
     r1: string | undefined;

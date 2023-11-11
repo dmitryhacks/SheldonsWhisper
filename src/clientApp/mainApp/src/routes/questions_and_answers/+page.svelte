@@ -1,6 +1,7 @@
 <script lang="ts">
   import { writable } from "svelte/store";
   import {
+    FieldToEdit,
     ProjectState,
     type QuestionAndAnswer,
   } from "../../models/project-data";
@@ -12,8 +13,11 @@
     getQARecommendation,
     getQAUpload,
   } from "../../services/projectStatus";
+  import { PUBLIC_OPENAI_APIKEY } from '$env/static/public';
+  import * as openAI from 'openai';
 
   import Papa from "papaparse";
+  import QAndAEditableCell from "../../components/QAndAEditableCell.svelte";
 
   let file = "";
   let files: FileList;
@@ -26,6 +30,16 @@
       uploadedCSV = file;
     }
   }
+
+
+  let isEditableMode = writable(false);
+  let editIndex = writable(-1);
+  let editColumn = writable(FieldToEdit.Answer);
+  let editableCellValue = writable('');
+
+
+
+  
 
   let description = "";
   let jobDescription = "";
@@ -46,6 +60,7 @@
         results.data.forEach((element: { Question: any; Answer: any }) => {
           var newQandA: QuestionAndAnswer = {
             index: counter,
+            c: 'technical',
             q: element.Question,
             a: element.Answer,
             r1: '',
@@ -68,6 +83,38 @@
       },
     });
   };
+
+  function getRecommendations(){
+    fetch("https://api.openai.com/v1/chat/completions", {
+  method: "POST",
+  headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${PUBLIC_OPENAI_APIKEY}`
+    },
+    body: JSON.stringify({
+      "model": "gpt-4",
+      "messages":[
+        {
+        "role": "system",
+        "content": "You are a helpful assistant. Your results are JSON string of array. Your prompt will be an JSON array of two strings. THe first part is the interview question. The second part is the answer to the interview question. You must provide between 1 and 3 recommendations, so if I read the interview question, and your recommendations, I can deduce the anwer. Your recommendations should be very concise (up to 6 words per recommendation. Here is an example of the request: [\"Explain the concept of event-driven programming in Node.js\",\"Node.js is built around an event-driven architecture, where certain kinds of objects (called \"emitters\") emit named events that cause Function objects (\"listeners\") to be called.\"] And here is a sample answer: [\"event-driven architecture\",\"emitters emit events\",\"triggers listeners to be called\",]"
+      },
+      {
+        "role": "user",
+        "content": "[\"What is the purpose of module.exports in Node.js?\",\"module.exports is used to export functions, objects, or primitive values from a module so they can be used by other programs with the require() function.\"]"
+      }
+      ],
+      "response_format": { "type": "json_object" },
+      "temperature": 0,
+      "max_tokens": 100,
+      "top_p": 1,
+      "frequency_penalty": 0.0,
+      "presence_penalty": 0.0,
+      "stop": ["\n"]
+    })
+  }
+).then(r=>console.log(r))
+  }
 
   const handleCSVUpload = (event: { target: { files: any[] } }) => {
     console.log(event.target.files[0]);
@@ -155,8 +202,13 @@
               {#each Array.from($projectData.qAndA) as qAndA}
                 <tr>
                   <th>{qAndA.index}</th>
-                  <td>{qAndA.q}</td>
-                  <td>{qAndA.a}</td>
+                  <td>{qAndA.q}
+                    <br/>
+                    <span class="badge badge-ghost badge-sm">{qAndA.c}</span>
+                </td>
+                  <td>
+                    <QAndAEditableCell qAndA = {qAndA} fieldToEdit = {FieldToEdit.Answer} />
+                </td>
                 </tr>
               {/each}
             </tbody>
@@ -164,7 +216,7 @@
         </div>
       </div>
     {:else if $currentStep === 3}
-      <h2 class="card-title">Recommendations</h2>
+      <h2 class="card-title">Recommendations</h2><button on:click={getRecommendations} class="btn btn-active btn-primary" >Get one</button>
       <div class="form step-one mt-8 items-center flex flex-col">
         <div class="overflow-x-auto h-90">
           <table class="table w-full table-sm table-pin-rows">
@@ -183,11 +235,12 @@
               {#each Array.from($projectData.qAndA) as qAndA}
               <tr>
                 <th>{qAndA.index}</th>
-                <td>{qAndA.q}</td>
+                <td>{qAndA.q}<br/>
+                  <span class="badge badge-ghost badge-sm">{qAndA.c}</td>
                 <td>{qAndA.a}</td>
-                <td>{qAndA.r1}</td>
-                <td>{qAndA.r2}</td>
-                <td>{qAndA.r3}</td>
+                <td><QAndAEditableCell qAndA = {qAndA} fieldToEdit = {FieldToEdit.Recommendation1} /></td>
+                <td><QAndAEditableCell qAndA = {qAndA} fieldToEdit = {FieldToEdit.Recommendation2} /></td>
+                <td><QAndAEditableCell qAndA = {qAndA} fieldToEdit = {FieldToEdit.Recommendation3} /></td>
               </tr>
             {/each}
               
