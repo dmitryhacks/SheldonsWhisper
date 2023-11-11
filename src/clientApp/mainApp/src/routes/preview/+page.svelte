@@ -1,9 +1,11 @@
 <script lang="ts">
+    import { PUBLIC_WIDGET_URL } from "$env/static/public";
     import type { QuestionAndAnswer } from "../../models/project-data";
     import { playAudioFromText } from "../../services/audioSynth";
   import { projectData } from "../../stores/project.store";
 
   let question: QuestionAndAnswer;
+  let recommendationsQuery: string = "";
 
   async function getRandomQuestion() {
     if (Array.isArray($projectData.qAndA)) {
@@ -12,6 +14,24 @@
       if (question.q) {
         await playAudioFromText(question.q);
         console.log('played');
+
+        let queryBuilder = "";
+
+        if (question.r1) {
+          queryBuilder += "&r1=" + question.r1;
+        }
+        if (question.r2) {
+          queryBuilder += "&r2=" + question.r2;
+        }
+        if (question.r3) {
+          queryBuilder += "&r3=" + question.r3;
+        }
+
+        console.log(queryBuilder);
+
+        if (queryBuilder !== "") {
+          recommendationsQuery = queryBuilder; 
+        }
       }
     }
   }
@@ -39,32 +59,7 @@
       </div>
     
       <div class="widget">
-        <div class="cards-container">
-          <!-- {#if question?.r1} -->
-            <div class="card w-96 bg-secondary shadow-xl">
-              <div class="card-body">
-                {question?.r1}
-                Rec 1
-              </div>
-            </div>
-          <!-- {/if} -->
-          <!-- {#if question?.r2} -->
-          <div class="card w-96 bg-secondary shadow-xl">
-            <div class="card-body">
-              {question?.r2}
-              Rec 2
-            </div>
-          </div>
-          <!-- {/if} -->
-          <!-- {#if question?.r3} -->
-          <div class="card w-96 bg-secondary shadow-xl">
-            <div class="card-body">
-              {question?.r3}
-              Rec 3
-            </div>
-          </div>
-          <!-- {/if} -->
-        </div>
+        <iframe src="{PUBLIC_WIDGET_URL}?{recommendationsQuery}" title="preview widget" />
       </div>
     </div>
   </div>
@@ -86,9 +81,8 @@
     margin-top: 20px;
   }
 
-  .cards-container {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+  iframe {
+    height: 600px;
+    width: 370px;
   }
 </style>
