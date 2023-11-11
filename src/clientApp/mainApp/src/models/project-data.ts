@@ -17,6 +17,15 @@ export interface ProjectSummary{
     projectName : string;
 }
 
+export interface QuestionAndAnswer{
+    index: number;
+    q: string | undefined;
+    a: string | undefined;
+    r1: string | undefined;
+    r2: string | undefined;
+    r3: string | undefined;
+}
+
 export interface ProjectData {
     projectName : string | undefined;
     projectDescription : string | undefined;
@@ -26,4 +35,5 @@ export interface ProjectData {
     resumeProvided: boolean | undefined;
     preferences: string | undefined;
     preferencesProvided: boolean | undefined;
+    qAndA: QuestionAndAnswer[];
 }

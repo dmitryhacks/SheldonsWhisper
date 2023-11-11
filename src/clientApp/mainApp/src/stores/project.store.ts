@@ -25,6 +25,7 @@ const defaultProjectData:ProjectData = {
   resumeProvided: false,
   preferences: undefined,
   preferencesProvided: false,
+  qAndA:[],
 };
 
 const initialProjectDataValue = browser && window.localStorage.getItem("projectData") ? 

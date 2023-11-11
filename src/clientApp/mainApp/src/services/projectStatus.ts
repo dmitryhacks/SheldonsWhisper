@@ -45,7 +45,7 @@ export function getQAList(projectData: ProjectData) {
     if (projectData === undefined){
         return ConfigurationSectionStatus.Error;
     }
-    if (projectData?.projectName?.length === 0 )
+    if (projectData?.qAndA?.length === 0 )
         return ConfigurationSectionStatus.Error;
     else
         return ConfigurationSectionStatus.Good;
