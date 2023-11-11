@@ -7,31 +7,33 @@
   let question: QuestionAndAnswer;
   let recommendationsQuery: string = "";
 
+  let showAnswer: boolean = false;
+
   async function getRandomQuestion() {
     if (Array.isArray($projectData.qAndA)) {
+      showAnswer = false;
       question = $projectData.qAndA[Math.floor(Math.random()*$projectData.qAndA.length)];
 
       if (question.q) {
         await playAudioFromText(question.q);
-        console.log('played');
 
-        let queryBuilder = "";
-
-        if (question.r1) {
-          queryBuilder += "&r1=" + question.r1;
-        }
-        if (question.r2) {
-          queryBuilder += "&r2=" + question.r2;
-        }
-        if (question.r3) {
-          queryBuilder += "&r3=" + question.r3;
-        }
-
-        console.log(queryBuilder);
-
-        if (queryBuilder !== "") {
-          recommendationsQuery = queryBuilder; 
-        }
+        setTimeout(() => {
+          let queryBuilder = "";
+  
+          if (question.r1) {
+            queryBuilder += "&r1=" + question.r1;
+          }
+          if (question.r2) {
+            queryBuilder += "&r2=" + question.r2;
+          }
+          if (question.r3) {
+            queryBuilder += "&r3=" + question.r3;
+          }
+    
+          if (queryBuilder !== "") {
+            recommendationsQuery = queryBuilder; 
+          }
+        }, 1000);
       }
     }
   }
@@ -44,17 +46,30 @@
     </div>
     
     <div class="preview-container">
-      <div>
-        
-    
+      <div>    
         <button on:click={getRandomQuestion} class="btn btn-active btn-primary">
-          Get Question
+          Get Random Question
         </button>
     
         {#if question}
           <p>
             {question.q}
           </p>
+        {/if}
+
+        {#if question?.a}
+          <button
+            on:click={() => showAnswer = true}
+            class="btn btn-active btn-neutral show-answer-btn"
+          >
+            Show Answer
+          </button>
+
+          {#if showAnswer}
+            <p>
+              {question.a}
+            </p>
+          {/if}
         {/if}
       </div>
     
@@ -75,10 +90,20 @@
   .preview-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
+    
   }
 
   .preview-container p {
     margin-top: 20px;
+  }
+
+  .show-answer-btn {
+    margin-top: 100px;
+  }
+
+  .widget {
+    display: flex;
+    justify-content: center;
   }
 
   iframe {
