@@ -16,7 +16,7 @@ projectStatConfig.subscribe((value) => {
 });
 
 //project data
-const defaultProjectData:ProjectData = {
+const defaultProjectData: ProjectData = {
   projectName: undefined,
   projectDescription: undefined,
   jobDescription: undefined,
@@ -25,24 +25,39 @@ const defaultProjectData:ProjectData = {
   resumeProvided: false,
   preferences: undefined,
   preferencesProvided: false,
-  qAndA:[],
+  qAndA: [],
 };
 
-const initialProjectDataValue = browser && window.localStorage.getItem("projectData") ? 
-   JSON.parse(window.localStorage.getItem("projectData") ?? '')
-  : defaultProjectData;
+const initialProjectDataValue =
+  browser && window.localStorage.getItem("projectData")
+    ? JSON.parse(window.localStorage.getItem("projectData") ?? "")
+    : defaultProjectData;
 
 const projectDataConfig = writable<ProjectData>(initialProjectDataValue);
 projectDataConfig.subscribe((value) => {
   if (browser) {
-
-    value.jobDescriptionProvided = (value?.jobDescription?.length ?? 0)>0;
-    value.resumeProvided = (value?.resume?.length ?? 0)>0;
-    value.preferencesProvided = (value?.preferences?.length ?? 0)>0;
+    value.jobDescriptionProvided = (value?.jobDescription?.length ?? 0) > 0;
+    value.resumeProvided = (value?.resume?.length ?? 0) > 0;
+    value.preferencesProvided = (value?.preferences?.length ?? 0) > 0;
 
     window.localStorage.setItem("projectData", JSON.stringify(value));
   }
 });
+
+const defaultProjectId = "";
+const initialProjectIdValue = browser
+  ? window.localStorage.getItem("projectId") ?? defaultProjectId
+  : defaultProjectId;
+
+const projectIdConfig = writable<string>(initialProjectIdValue);
+
+projectIdConfig.subscribe((value) => {
+  if (browser) {
+    window.localStorage.setItem("projectId", value);
+  }
+});
+
+export const projectId = projectIdConfig;
 
 export const projectState = projectStatConfig;
 export const projectData = projectDataConfig;

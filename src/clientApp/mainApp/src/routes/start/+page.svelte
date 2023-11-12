@@ -6,7 +6,7 @@
   import { ProjectState } from "../../models/project-data";
   onMount(() => {
     let state;
-    const unsubscribe = projectState.subscribe((value) => {
+    const unsubscribe = projectState.subscribe(async (value) => {
       state = value;
       if (state !== ProjectState.NotStarted) {
         goto("/summary", { replaceState: true });
