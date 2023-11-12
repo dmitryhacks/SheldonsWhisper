@@ -46,20 +46,27 @@
 
       {:else}
       <div>
+        <div>
+          Your interviewer will call this number:
+        </div>
+        <h2>
+          +{session.phoneNumber}
+        </h2>
 
+        <div>
+          Sheldon will quietly join you by calling this number:
+        </div>
+        <h2>
+          {userPhoneNumber}
+        </h2>
       </div>
       
-      <h2>
-        Twilio: +{session.phoneNumber}
-      </h2>
-      <h2>
-        Your phone number: {userPhoneNumber}
-      </h2>
-
-      <iframe
-        src="{PUBLIC_WIDGET_URL}?session_id={session.id}"
-        title="preview widget"
-      />
+      <div class="widget">
+        <iframe
+          src="{PUBLIC_WIDGET_URL}?session_id={session.id}"
+          title="preview widget"
+        />
+      </div>
       {/if}
     </div>
   </div>
@@ -71,9 +78,19 @@
     width: 370px;
   }
 
+  .live-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
   .live-container h2 {
     font-size: 2em;
     margin-bottom: 20px;
+  }
+
+  .widget {
+    display: flex;
+    justify-content: center;
   }
 
 </style>
