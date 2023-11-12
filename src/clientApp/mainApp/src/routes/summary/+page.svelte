@@ -1,6 +1,6 @@
 <script lang="ts">
   import { writable } from "svelte/store";
-  import { ProjectState } from "../../models/project-data";
+  import { ProjectState, type ProjectData } from "../../models/project-data";
   import { projectData, projectState } from "../../stores/project.store";
   import StepWithContent from "../../components/StepWithContent.svelte";
   import {
@@ -10,6 +10,10 @@
     getSummaryResume,
   } from "../../services/projectStatus";
   import { onMount } from "svelte";
+  import {
+    getFiles,
+    syncTextAndFile,
+  } from "../../services/boostVoiceAi";
 
   let name = "";
   let description = "";
@@ -26,20 +30,44 @@
     $currentStep = $currentStep + 1;
   }
 
-  function saveProjectSummary() {
+  const syncWithBVAI = async (pd: ProjectData) => {
+    const allFiles = await getFiles();
+    await syncTextAndFile(
+      pd.jobDescription,
+      "job_description.txt",
+      allFiles,
+      "fine-tuning",
+      "user-provided"
+    );
+    await syncTextAndFile(
+      pd.resume,
+      "resume.txt",
+      allFiles,
+      "fine-tuning",
+      "user-provided"
+    );
+  };
+
+  const saveProjectSummary = async () => {
+    const summaryChanges = {
+      projectName: name,
+      projectDescription: description,
+      jobDescription: jobDescription,
+      resume: resume,
+      preferences: preferences,
+    };
+
     projectData.update((pd) => {
       return {
         ...pd,
-        projectName: name,
-        projectDescription: description,
-        jobDescription: jobDescription,
-        resume: resume,
-        preferences : preferences,
+        ...summaryChanges,
       };
     });
 
+    await syncWithBVAI({ ...$projectData, ...summaryChanges });
+
     projectState.set(ProjectState.Configuring);
-  }
+  };
 </script>
 
 <div class="card bg-base-100 shadow-xl">
@@ -111,7 +139,7 @@
         </div>
       </div>
     {:else if $currentStep === 3}
-    <h2 class="card-title">Resume</h2>
+      <h2 class="card-title">Resume</h2>
       <div class="form step-one mt-8 items-center flex flex-col">
         <div class="form-control w-full max-w-xs">
           <label class="label" for="summmary_resume">
@@ -126,7 +154,7 @@
         </div>
       </div>
     {:else}
-    <h2 class="card-title">Your preferences</h2>
+      <h2 class="card-title">Your preferences</h2>
       <div class="form step-one mt-8 items-center flex flex-col">
         <div class="form-control w-full max-w-xs">
           <label class="label" for="summmary_preferences">
