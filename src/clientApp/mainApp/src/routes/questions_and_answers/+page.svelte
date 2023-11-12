@@ -13,11 +13,12 @@
     getQARecommendation,
     getQAUpload,
   } from "../../services/projectStatus";
-  import { PUBLIC_OPENAI_APIKEY } from '$env/static/public';
-  import * as openAI from 'openai';
+  import { PUBLIC_OPENAI_APIKEY } from "$env/static/public";
+  import * as openAI from "openai";
 
   import Papa from "papaparse";
   import QAndAEditableCell from "../../components/QAndAEditableCell.svelte";
+  import { runWizardRecommendationsQAndA } from "../../services/boostVoiceAi";
 
   let file = "";
   let files: FileList;
@@ -31,15 +32,10 @@
     }
   }
 
-
   let isEditableMode = writable(false);
   let editIndex = writable(-1);
   let editColumn = writable(FieldToEdit.Answer);
-  let editableCellValue = writable('');
-
-
-
-  
+  let editableCellValue = writable("");
 
   let description = "";
   let jobDescription = "";
@@ -60,12 +56,12 @@
         results.data.forEach((element: { Question: any; Answer: any }) => {
           var newQandA: QuestionAndAnswer = {
             index: counter,
-            c: 'technical',
+            c: "technical",
             q: element.Question,
             a: element.Answer,
-            r1: '',
-            r2: '',
-            r3: '',
+            r1: "",
+            r2: "",
+            r3: "",
           };
           newList.push(newQandA);
           counter++;
@@ -84,37 +80,19 @@
     });
   };
 
-  function getRecommendations(){
-    fetch("https://api.openai.com/v1/chat/completions", {
-  method: "POST",
-  headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${PUBLIC_OPENAI_APIKEY}`
-    },
-    body: JSON.stringify({
-      "model": "gpt-4",
-      "messages":[
-        {
-        "role": "system",
-        "content": "You are a helpful assistant. Your results are JSON string of array. Your prompt will be an JSON array of two strings. THe first part is the interview question. The second part is the answer to the interview question. You must provide between 1 and 3 recommendations, so if I read the interview question, and your recommendations, I can deduce the anwer. Your recommendations should be very concise (up to 6 words per recommendation. Here is an example of the request: [\"Explain the concept of event-driven programming in Node.js\",\"Node.js is built around an event-driven architecture, where certain kinds of objects (called \"emitters\") emit named events that cause Function objects (\"listeners\") to be called.\"] And here is a sample answer: [\"event-driven architecture\",\"emitters emit events\",\"triggers listeners to be called\",]"
-      },
-      {
-        "role": "user",
-        "content": "[\"What is the purpose of module.exports in Node.js?\",\"module.exports is used to export functions, objects, or primitive values from a module so they can be used by other programs with the require() function.\"]"
-      }
-      ],
-      "response_format": { "type": "json_object" },
-      "temperature": 0,
-      "max_tokens": 100,
-      "top_p": 1,
-      "frequency_penalty": 0.0,
-      "presence_penalty": 0.0,
-      "stop": ["\n"]
-    })
-  }
-).then(r=>console.log(r))
-  }
+  const isLoadingRecommendations = writable(false);
+  const getRecommendations = async () => {
+    isLoadingRecommendations.set(true);
+
+    const newQAndA = await runWizardRecommendationsQAndA({
+      items: $projectData.qAndA,
+      userData: { SCOPE: "job interview" },
+    });
+    projectData.update((pd) => {
+      isLoadingRecommendations.set(false);
+      return { ...pd, qAndA: newQAndA };
+    });
+  };
 
   const handleCSVUpload = (event: { target: { files: any[] } }) => {
     console.log(event.target.files[0]);
@@ -129,7 +107,7 @@
     $currentStep = $currentStep + 1;
   }
 
-  function saveProjectQA() {
+  const saveProjectQA = async () => {
     projectData.update((pd) => {
       return {
         ...pd,
@@ -138,7 +116,12 @@
     });
 
     projectState.set(ProjectState.Configuring);
-  }
+  };
+
+  const generateDataDialogs = async () => {
+    //data dialogs for summaries (20)
+    //data dialogs for QARs (30)
+  };
 </script>
 
 <div class="card bg-base-100 shadow-xl">
@@ -202,13 +185,17 @@
               {#each Array.from($projectData.qAndA) as qAndA}
                 <tr>
                   <th>{qAndA.index}</th>
-                  <td>{qAndA.q}
-                    <br/>
+                  <td
+                    >{qAndA.q}
+                    <br />
                     <span class="badge badge-ghost badge-sm">{qAndA.c}</span>
-                </td>
+                  </td>
                   <td>
-                    <QAndAEditableCell qAndA = {qAndA} fieldToEdit = {FieldToEdit.Answer} />
-                </td>
+                    <QAndAEditableCell
+                      {qAndA}
+                      fieldToEdit={FieldToEdit.Answer}
+                    />
+                  </td>
                 </tr>
               {/each}
             </tbody>
@@ -216,7 +203,14 @@
         </div>
       </div>
     {:else if $currentStep === 3}
-      <h2 class="card-title">Recommendations</h2><button on:click={getRecommendations} class="btn btn-active btn-primary" >Get one</button>
+      <h2 class="card-title">Recommendations</h2>
+      <button on:click={getRecommendations} class="btn btn-active btn-primary">
+        {#if $isLoadingRecommendations}
+          <span class="loading loading-spinner" />
+          Loading...
+        {:else}
+          Autopopulate Recommendations{/if}</button
+      >
       <div class="form step-one mt-8 items-center flex flex-col">
         <div class="overflow-x-auto h-90">
           <table class="table w-full table-sm table-pin-rows">
@@ -233,35 +227,42 @@
             </thead>
             <tbody>
               {#each Array.from($projectData.qAndA) as qAndA}
-              <tr>
-                <th>{qAndA.index}</th>
-                <td>{qAndA.q}<br/>
-                  <span class="badge badge-ghost badge-sm">{qAndA.c}</td>
-                <td>{qAndA.a}</td>
-                <td><QAndAEditableCell qAndA = {qAndA} fieldToEdit = {FieldToEdit.Recommendation1} /></td>
-                <td><QAndAEditableCell qAndA = {qAndA} fieldToEdit = {FieldToEdit.Recommendation2} /></td>
-                <td><QAndAEditableCell qAndA = {qAndA} fieldToEdit = {FieldToEdit.Recommendation3} /></td>
-              </tr>
-            {/each}
-              
+                <tr>
+                  <th>{qAndA.index}</th>
+                  <td
+                    >{qAndA.q}<br />
+                    <span class="badge badge-ghost badge-sm">{qAndA.c}</span
+                    ></td
+                  >
+                  <td>{qAndA.a}</td>
+                  <td
+                    ><QAndAEditableCell
+                      {qAndA}
+                      fieldToEdit={FieldToEdit.Recommendation1}
+                    /></td
+                  >
+                  <td
+                    ><QAndAEditableCell
+                      {qAndA}
+                      fieldToEdit={FieldToEdit.Recommendation2}
+                    /></td
+                  >
+                  <td
+                    ><QAndAEditableCell
+                      {qAndA}
+                      fieldToEdit={FieldToEdit.Recommendation3}
+                    /></td
+                  >
+                </tr>
+              {/each}
             </tbody>
           </table>
         </div>
       </div>
     {:else}
-      <h2 class="card-title">Finale Review</h2>
+      <h2 class="card-title">Final Review</h2>
       <div class="form step-one mt-8 items-center flex flex-col">
-        <div class="form-control w-full max-w-xs">
-          <label class="label" for="summmary_preferences">
-            <span class="label-text">What do you want?</span>
-          </label>
-          <textarea
-            name="summmary_preferences"
-            bind:value={preferences}
-            class="textarea textarea-bordered textarea-md"
-            placeholder="I want 120K salary"
-          />
-        </div>
+        <div class="form-control w-full max-w-xs" />
       </div>
     {/if}
     <div class="card-actions">
@@ -281,8 +282,12 @@
           class="btn btn-active btn-primary">Next</button
         >
       {:else}
-        <button on:click={saveProjectQA} class="btn btn-active btn-primary"
-          >Save</button
+        <button
+          on:click={async () => {
+            await saveProjectQA();
+            await generateDataDialogs();
+          }}
+          class="btn btn-active btn-primary">Save and Submit</button
         >
       {/if}
     </div>

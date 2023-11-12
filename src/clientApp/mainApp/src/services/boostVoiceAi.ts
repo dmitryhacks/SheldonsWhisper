@@ -1,6 +1,7 @@
 import axios from "axios";
 
 import { PUBLIC_BOOST_VOICE_AI_APIKEY, PUBLIC_BOOST_VOICE_AI_URI } from "$env/static/public";
+import type { QuestionAndAnswer } from "../models/project-data";
 
 export interface ProjectCreationSettings {
   projectName: string;
@@ -45,6 +46,11 @@ export interface FileCreationSettings {
   File: File;
   purpose: string;
   description: string;
+}
+
+export interface WizardRecommendationQAndARequest{
+    items: QuestionAndAnswer[];
+    userData: { [key: string]: string };
 }
 
 const bvaiBaseUrl = PUBLIC_BOOST_VOICE_AI_URI;
@@ -213,3 +219,33 @@ export async function createProject(
     }
   });
 }
+
+export async function runWizardRecommendationsQAndA(
+    wizardRecommendationQAndARequest: WizardRecommendationQAndARequest
+  ): Promise<QuestionAndAnswer[]> {
+    return new Promise(async (resolve, reject) => {
+      const requestBody = {
+        ...wizardRecommendationQAndARequest,
+      };
+  
+      try {
+        const response = await axios.post(
+          `${bvaiBaseUrl}/wizards/recommendations/q_and_a`,
+          requestBody,
+          {
+            headers: standardHeaders,
+          }
+        );
+  
+        if (response.status === 200) {
+          resolve(response.data.data as QuestionAndAnswer[]);
+        } else {
+          console.error("Error: Unable to stream audio.");
+          reject();
+        }
+      } catch (error) {
+        console.error("Error: Unable to stream audio.");
+        reject();
+      }
+    });
+  }
