@@ -203,6 +203,7 @@
         </div>
       </div>
     {:else if $currentStep === 3}
+    <div class="recommendations-container">
       <h2 class="card-title">Recommendations</h2>
       <button on:click={getRecommendations} class="btn btn-active btn-primary">
         {#if $isLoadingRecommendations}
@@ -211,6 +212,7 @@
         {:else}
           Autopopulate Recommendations{/if}</button
       >
+    </div>
       <div class="form step-one mt-8 items-center flex flex-col">
         <div class="overflow-x-auto h-90">
           <table class="table w-full table-sm table-pin-rows">
@@ -293,3 +295,10 @@
     </div>
   </div>
 </div>
+
+<style>
+  .recommendations-container {
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
