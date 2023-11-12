@@ -1,6 +1,6 @@
 <script lang="ts">
   import { writable } from "svelte/store";
-  import { ProjectState, type ProjectData } from "../../models/project-data";
+  import { ProjectState, type ProjectData, jobDescriptionFilePurpose, jobDescriptionFileDescripption, resumeFilePurpose, resumeFileDescripption } from "../../models/project-data";
   import { projectData, projectState } from "../../stores/project.store";
   import StepWithContent from "../../components/StepWithContent.svelte";
   import {
@@ -36,15 +36,15 @@
       pd.jobDescription,
       "job_description.txt",
       allFiles,
-      "fine-tuning",
-      "user-provided"
+      jobDescriptionFilePurpose,
+      jobDescriptionFileDescripption
     );
     await syncTextAndFile(
       pd.resume,
       "resume.txt",
       allFiles,
-      "fine-tuning",
-      "user-provided"
+      resumeFilePurpose,
+      resumeFileDescripption
     );
   };
 

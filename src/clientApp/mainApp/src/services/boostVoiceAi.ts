@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import { PUBLIC_BOOST_VOICE_AI_APIKEY } from "$env/static/public";
+import { PUBLIC_BOOST_VOICE_AI_APIKEY, PUBLIC_BOOST_VOICE_AI_URI } from "$env/static/public";
 
 export interface ProjectCreationSettings {
   projectName: string;
@@ -47,7 +47,7 @@ export interface FileCreationSettings {
   description: string;
 }
 
-const bvaiBaseUrl = "http://localhost:8088/api";
+const bvaiBaseUrl = PUBLIC_BOOST_VOICE_AI_URI;
 
 const standardHeaders = {
   "Content-Type": "application/json",

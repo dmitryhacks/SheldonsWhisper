@@ -20,6 +20,12 @@ export enum FieldToEdit  {
     Recommendation3 = 'Recommendation 3',
   }
 
+export const jobDescriptionFilePurpose = 'summarize possible questionsfor quick memory retrieval. For example, if job description says "Outstanding attention to detail", then you can generate a question by interviewer "Can you describe a time when your attention to detail prevented a mistake at work?" one question per line. Format: <Question></Question>';
+export const jobDescriptionFileDescripption = 'Job Description';
+export const resumeFilePurpose = 'summarize possible questions and answers for quick memory retrieval. For example, if resume says "Successfully implemented HITRUST Cloud infrastructure for B2B offerings", then you can generate a question by interviewer "What measures did you take to ensure compliance with HITRUST requirements?" and answer "Ensuring HITRUST compliance, I conducted a gap analysis, upgraded security protocols with encryption and multi-factor authentication, and established regular compliance audits. I also emphasized staff training in security practices and set up continuous monitoring systems, ensuring our cloud infrastructure met HITRUST standards effectively". One pair of question/answers per line. Format: <Question></Question><Answer></Answer>';
+export const resumeFileDescripption = 'Resume';
+export const operatorRole = 'an interviewee';
+export const callerRole = 'an interviewer';
 
 
 export interface ProjectSummary{
