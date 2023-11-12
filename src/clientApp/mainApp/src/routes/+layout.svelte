@@ -77,7 +77,7 @@
           <li><a href="/questions_and_answers">Questions & Answers</a></li>
           <li><a href="/questions_and_answers">Finetuning Sheldon</a></li>
           <li><a href="/preview">Preview</a></li>
-          <li><a href="/questions_and_answers">Live</a></li>
+          <li><a href="/live">Live</a></li>
         </ul>
       </div>
     </div>

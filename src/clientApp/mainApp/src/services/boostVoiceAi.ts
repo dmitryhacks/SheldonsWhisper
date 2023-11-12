@@ -53,6 +53,21 @@ export interface WizardRecommendationQAndARequest{
     userData: { [key: string]: string };
 }
 
+export interface CreateSessionRequest {
+  projectId: string;
+  destination_phone_number: string;
+}
+
+export interface ProjectSession {
+  id: string;
+  organizationId: string;
+  projectId: string;
+  phoneNumber: string;
+  phonePoolId: string;
+  sessionStartTime: string;
+  sessionEndTime: string;
+}
+
 const bvaiBaseUrl = PUBLIC_BOOST_VOICE_AI_URI;
 
 const standardHeaders = {
@@ -249,3 +264,31 @@ export async function runWizardRecommendationsQAndA(
       }
     });
   }
+
+export async function createSession(request: CreateSessionRequest): Promise<ProjectSession> {
+  return new Promise(async (resolve, reject) => {
+    const requestBody = {
+      ...request,
+    };
+
+    try {
+      const response = await axios.post(
+        `${bvaiBaseUrl}/sessions`,
+        requestBody,
+        {
+          headers: standardHeaders,
+        }
+      );
+
+      if (response.status === 200) {
+        resolve(response.data.data as ProjectSession);
+      } else {
+        console.error("Error: Unable to stream audio.");
+        reject();
+      }
+    } catch (error) {
+      console.error("Error: Unable to stream audio.");
+      reject();
+    }
+  });
+}
